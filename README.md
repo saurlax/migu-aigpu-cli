@@ -18,7 +18,25 @@ go build -o migu ./cmd/migu
 
 ## 登录
 
-2026-10-05 已完成真实登录后的 OAuth 回调验证：现有网页客户端拒绝 `http://127.0.0.1:54321/callback`，报错 `Invalid redirect ... does not match one of the registered values`。不能直接将其作为原生 CLI 的本机回调客户端。下面的流程是浏览器会话导入，并非官方第三方 OAuth 接入；自动打开专用浏览器并导入会话尚未实现。
+推荐使用浏览器自动导入：
+
+```sh
+migu auth login
+# 自动检测不到浏览器时指定路径
+migu auth login --browser "C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe"
+# 登录等待时间，默认10分钟，最多30分钟
+migu auth login --wait 15m
+```
+
+CLI 打开独立的可见 Chrome/Edge 窗口；在里面正常完成短信验证码登录即可，不用开发者工具或粘贴脚本。CLI 自动检测必要会话，用一次只读实例查询验证，然后加密保存。取消、超时或验证失败保留原会话。验证成功后关闭专用浏览器，删除临时浏览器配置。进度写入 stderr，`--json` 的成功元数据写入 stdout，不输出凭证。
+
+Windows Edge 已完成真实网页登录、自动验证、保存后再次查询和专用浏览器退出清理的完整实测。其他系统通过编译和单元测试，仍需当地桌面环境的真实登录验收。
+
+需要本机已有 Chrome、Edge 或兼容 Chromium 浏览器及桌面环境；不会自动下载浏览器，不接管日常浏览器配置。用户关闭全部登录窗口会结束命令。登录检测仅在该命令运行期间进行，不启动后台任务。异常强制终止进程可能留下临时浏览器数据；不要将临时配置目录分享出去。
+
+2026-10-05 已完成真实登录后的 OAuth 回调验证：现有网页客户端拒绝 `http://127.0.0.1:54321/callback`，报错 `Invalid redirect ... does not match one of the registered values`。自动登录使用官方网页登录后的浏览器会话导入，并非官方第三方 OAuth 接入。
+
+也可以使用手动导入作为备用：
 
 ```sh
 migu auth capture
@@ -115,6 +133,6 @@ go vet ./...
 go run ./scripts/package -version v0.1.0
 ```
 
-测试覆盖自动续期、凭证轮换、续期失败保全、并发刷新锁、401 重试边界、重定向阻断、脱敏、DPAPI 存储和无凭证 dry-run。CI 在三个操作系统上测试；版本 tag 触发发布，附带六个平台压缩包和 SHA-256 校验文件。
+测试覆盖自动续期、凭证轮换、续期失败保全、并发刷新锁、401 重试边界、重定向阻断、脱敏、DPAPI 存储、登录验证失败保全和无凭证 dry-run。设置 `MIGU_BROWSER_TEST` 为已安装 Chrome/Edge 的路径，可以运行使用本机浏览器及合成会话的隔离、提取与清理测试；无需真实账户。CI 在三个操作系统上测试；版本 tag 触发发布，附带六个平台压缩包和 SHA-256 校验文件。
 
 MIT License。发布打包脚本参考 AutoDL CLI，并保留其版权声明。

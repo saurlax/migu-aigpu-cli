@@ -49,6 +49,26 @@ func TestUsageAndHelpOffline(t *testing.T) {
 	}
 }
 
+func TestLoginDryRunAndDeadlineValidation(t *testing.T) {
+	c := New("test")
+	var b bytes.Buffer
+	c.SetOut(&b)
+	c.SetArgs([]string{"auth", "login", "--dry-run", "--browser", "does-not-exist"})
+	if err := c.Execute(); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(b.String(), `"isolated_profile": true`) {
+		t.Fatal("login dry run missing isolation")
+	}
+	for _, wait := range []string{"0s", "31m"} {
+		c = New("test")
+		c.SetArgs([]string{"auth", "login", "--dry-run", "--wait", wait})
+		if err := c.Execute(); err == nil {
+			t.Fatal("invalid wait accepted")
+		}
+	}
+}
+
 func TestTableControlCharacters(t *testing.T) {
 	if got := cell(map[string]any{"name": "unsafe\x1b[31m\t\nname"}, "name"); strings.ContainsAny(got, "\x1b\t\n") {
 		t.Fatal("terminal control injection")

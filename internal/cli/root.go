@@ -12,6 +12,7 @@ import (
 
 	"github.com/saurlax/migu-aigpu-cli/internal/api"
 	"github.com/saurlax/migu-aigpu-cli/internal/auth"
+	"github.com/saurlax/migu-aigpu-cli/internal/login"
 	"github.com/spf13/cobra"
 )
 
@@ -79,6 +80,32 @@ func run(cmd *cobra.Command, o *options, method, path string, body any, readOnly
 
 func authCommands(o *options) *cobra.Command {
 	group := &cobra.Command{Use: "auth", Short: "Import, inspect, and renew an encrypted session", Args: cobra.NoArgs}
+	var browser string
+	var loginWait time.Duration
+	loginCommand := &cobra.Command{Use: "login", Short: "Open a dedicated browser; log in normally and import the verified session automatically", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
+		if loginWait <= 0 || loginWait > 30*time.Minute {
+			return errors.New("login wait must be between 0 and 30 minutes")
+		}
+		if o.timeout <= 0 {
+			return errors.New("HTTP timeout must be positive")
+		}
+		if o.dry {
+			return emit(cmd, map[string]any{"dry_run": true, "action": "login", "url": api.Origin + "/train/home", "browser": "installed Chrome/Edge", "isolated_profile": true})
+		}
+		s, err := auth.DefaultStore()
+		if err != nil {
+			return err
+		}
+		fmt.Fprintln(cmd.ErrOrStderr(), "Opening a dedicated browser. Complete the platform login there; no DevTools or script pasting needed.")
+		state, err := login.Browser(cmd.Context(), s, browser, loginWait, o.timeout, o.team)
+		if err != nil {
+			return err
+		}
+		return emit(cmd, metadata(state, false))
+	}}
+	loginCommand.Flags().StringVar(&browser, "browser", "", "Installed Chrome/Edge executable path (auto-detected by default)")
+	loginCommand.Flags().DurationVar(&loginWait, "wait", 10*time.Minute, "Foreground login deadline (maximum 30m)")
+	group.AddCommand(loginCommand)
 	status := &cobra.Command{Use: "status", Short: "Inspect local expiry without refreshing or network access", Args: cobra.NoArgs, RunE: func(cmd *cobra.Command, args []string) error {
 		s, err := auth.DefaultStore()
 		if err != nil {
