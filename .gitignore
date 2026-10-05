@@ -1,0 +1,9 @@
+/dist/
+/migu
+/migu.exe
+*.dpapi
+*.lock
+capture.js
+session*.json
+*.tmp
+capture-*.js
