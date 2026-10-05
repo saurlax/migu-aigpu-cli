@@ -18,6 +18,8 @@ go build -o migu ./cmd/migu
 
 ## 登录
 
+2026-10-05 已完成真实登录后的 OAuth 回调验证：现有网页客户端拒绝 `http://127.0.0.1:54321/callback`，报错 `Invalid redirect ... does not match one of the registered values`。不能直接将其作为原生 CLI 的本机回调客户端。下面的流程是浏览器会话导入，并非官方第三方 OAuth 接入；自动打开专用浏览器并导入会话尚未实现。
+
 ```sh
 migu auth capture
 ```
