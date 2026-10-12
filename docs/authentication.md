@@ -52,4 +52,3 @@ migu auth logout       # 删除本 CLI 登录态，不退出浏览器、不撤�
 实测当前 access 和 refresh token 有效期约 12 小时。长时间不用 CLI、服务端撤销凭证或过期后仍需重新登录导入；按需续期不保证永久登录。浏览器和 CLI 登录态互不自动同步，平台的 token 轮换/复用策略尚无官方保证。
 
 [返回 README](../README.md)。
-

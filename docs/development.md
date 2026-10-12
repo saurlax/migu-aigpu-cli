@@ -28,4 +28,3 @@ CI 和 Release 复用 [build.yml](../.github/workflows/build.yml)，运行格式
 推送 vMAJOR.MINOR.PATCH 格式的 tag 触发发布；带预发布后缀的 tag 创建 prerelease。维护者也可以在版本 tag 上手动运行 [Release](../.github/workflows/release.yml)。
 
 [返回 README](../README.md)。
-
